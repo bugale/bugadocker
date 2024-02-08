@@ -1,0 +1,26 @@
+---
+name: 'bugadocker/run'
+description: 'Run a detached docker container'
+inputs:
+  image:
+    description: 'The image to run'
+    required: true
+  options:
+    description: 'Free form arguments to pass to the docker run command'
+    required: false
+    default: ''
+  mount-workspaces:
+    description: 'Mount the workspaces directory into the container'
+    required: false
+    default: 'true'
+  set-container-id-env:
+    description: 'Set the result container id as an environment variable with the given name (empty for not setting)'
+    required: false
+    default: 'BUGADOCKER_ID'
+outputs:
+  container-id:
+    description: 'The id of the container that was started'
+runs:
+  using: 'node16'
+  main: '../dist/run/index.js'
+  post: '../dist/run-post/index.js'

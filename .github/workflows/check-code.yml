@@ -1,0 +1,103 @@
+---
+name: Check Code
+on:
+  pull_request:
+    paths:
+      - '**.ts*'
+      - '**.js*'
+      - '**eslint*'
+      - 'dist/**'
+      - 'src/**'
+      - 'action.yml'
+      - '.github/workflows/check-code.yml'
+jobs:
+  eslint:
+    name: ESLint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Dependencies
+        run: npm clean-install; npm install @microsoft/eslint-formatter-sarif
+      - name: Run ESLint
+        run: npx eslint . --format @microsoft/eslint-formatter-sarif --output-file lint.sarif
+      - name: Print Output
+        if: always()
+        run: cat lint.sarif
+      - name: Upload analysis results to GitHub
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: lint.sarif
+  check-dist:
+    name: Check dist/
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Dependencies
+        run: npm clean-install
+      - name: Build dist/ Directory
+        run: npm run package
+      - name: Compare Expected and Actual Directories
+        id: diff
+        run: |
+          if [ "$(git diff --ignore-space-at-eol --text dist/ | wc -l)" -gt "0" ]; then
+            echo "Detected uncommitted changes after build. See status below:"
+            git diff --ignore-space-at-eol --text dist/
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v4
+        if: ${{ failure() && steps.diff.conclusion == 'failure' }}
+        with:
+          name: dist
+          path: dist/
+  gha-workspace-mount:
+    runs-on: windows-latest
+    name: Test Workspace Mount
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Docker
+        uses: crazy-max/ghaction-setup-docker@v3
+      - name: Run Container
+        uses: ./run
+        with:
+          image: mcr.microsoft.com/windows/nanoserver:ltsc2022
+          options: --isolation=process
+      - name: Create Files
+        uses: ./exec
+        with:
+          shell: cmd
+          run: |-
+            echo test > ${{ github.workspace }}\test
+            echo test > ${{ runner.temp }}\test
+            type %GITHUB_WORKSPACE%\test
+            type %RUNNER_TEMP%\test
+      - name: Validate Files Exist
+        run: |-
+          Get-Content -Path ${{ github.workspace }}\test
+          Get-Content -Path ${{ runner.temp }}\test
+  gha-fail:
+    runs-on: windows-latest
+    name: Test Failure
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Docker
+        uses: crazy-max/ghaction-setup-docker@v3
+      - name: Run Container
+        uses: ./run
+        with:
+          image: mcr.microsoft.com/windows/nanoserver:ltsc2022
+          options: --isolation=process
+      - name: Run failing command
+        uses: ./exec
+        id: 'fail'
+        continue-on-error: true
+        with:
+          shell: cmd
+          run: exit 1
+      - name: Assume Failure
+        if: steps.fail.outcome == 'success'
+        run: exit 1
