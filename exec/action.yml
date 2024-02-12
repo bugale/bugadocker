@@ -1,0 +1,30 @@
+---
+name: 'bugadocker/exec'
+description: 'Execute a command in a running docker container'
+inputs:
+  run:
+    description: 'Powershell command(s) to run in the container'
+    required: true
+  options:
+    description: 'Free form arguments to pass to the docker run command'
+    required: false
+    default: ''
+  container:
+    description: 'Identifier of a running container'
+    required: false
+    default: ''
+  container-env:
+    description: 'Name of an environment variable containing the identifier of a running container'
+    required: false
+    default: 'BUGADOCKER_ID'
+  shell:
+    description: 'The shell to use to run the command'
+    required: false
+    default: 'pwsh'
+  pass-gh-env:
+    description: 'Pass the GitHub environment variables to the container'
+    required: false
+    default: 'true'
+runs:
+  using: 'node16'
+  main: '../dist/exec/index.js'
