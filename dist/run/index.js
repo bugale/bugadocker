@@ -4118,7 +4118,7 @@ const exec_1 = __nccwpck_require__(514);
 const core_1 = __nccwpck_require__(186);
 async function setupMount(path) {
     if (path.startsWith('C:\\')) {
-        return [`--mount type=bind,src=${path},dst=${path}`];
+        return [`-v ${path}:${path}`];
     }
     if (process.env.RUNNER_TEMP === undefined) {
         throw new Error('RUNNER_TEMP is not defined');
@@ -4132,7 +4132,7 @@ async function setupMount(path) {
         (0, fs_1.rmSync)(linkPath, { recursive: true, force: true });
         await (0, exec_1.exec)('cmd', ['/c', `mklink /J ${linkPath} ${linkTarget}`]);
     }
-    return [`--mount type=bind,src=${drivePath},dst=${drive}:`, `--mount type=bind,src=${path},dst=${linkTarget}`];
+    return [`-v ${drivePath}:${drive}:`, `-v ${path}:${linkTarget}`];
 }
 async function run() {
     try {
@@ -4140,7 +4140,16 @@ async function run() {
         const options = (0, core_1.getMultilineInput)('options');
         const mountWorkspaces = (0, core_1.getBooleanInput)('mount-workspaces');
         const setContainerIdEnv = (0, core_1.getInput)('set-container-id-env');
+        const volumes = (0, core_1.getMultilineInput)('volumes');
+        const env = (0, core_1.getMultilineInput)('env');
+        const ports = (0, core_1.getMultilineInput)('ports');
+        const registryUsername = (0, core_1.getInput)('registry-username');
+        const registryPassword = (0, core_1.getInput)('registry-password');
         let stdout = '';
+        if (registryUsername !== '' && registryPassword !== '') {
+            const server = image.split('/')[0];
+            await (0, exec_1.exec)('docker', ['login', server, '--username', registryUsername, '--password-stdin'], { input: Buffer.from(registryPassword) });
+        }
         const execOptions = {};
         execOptions.listeners = {
             stdout: (data) => {
@@ -4156,6 +4165,15 @@ async function run() {
             for (const mount of new Set([...(await setupMount(workspace)), ...(await setupMount(workspaceTemp))])) {
                 options.push(mount);
             }
+        }
+        for (const volume of volumes) {
+            options.push(`-v ${volume}`);
+        }
+        for (const e of env) {
+            options.push(`-e ${e}`);
+        }
+        for (const port of ports) {
+            options.push(`-p ${port}`);
         }
         await (0, exec_1.exec)(`docker run --rm -td ${options.join(' ')} ${image} cmd`, [], execOptions);
         (0, core_1.saveState)('container-id', stdout.trim());
