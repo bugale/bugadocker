@@ -44,6 +44,22 @@ It also sets by default an environment variable (`BUGADOCKER_ID`) with the conta
 - `set-container-id-env`: `BUGADOCKER_ID` by default - the name of an environment variable that will be set with the container's ID.
   Leave empty to not set any environment variable.
 
+- `volumes`: Multiline string with the volumes to mount into the container.
+  Each line should be a volume in the format `host-path:container-path[:options]`.
+  The options are the same as the ones used in the `-v` argument of `docker run` command.
+
+- `env`: Multiline string with the environment variables to set in the container.
+  Each line should be an environment variable in the format `name=value` or just `name`.
+  The options are the same as the ones used in the `-e` argument of `docker run` command.
+
+- `ports`: Multiline string with the ports to expose from the container.
+  Each line should be a port in the format `host-port:container-port[:protocol]`.
+  The options are the same as the ones used in the `-p` argument of `docker run` command.
+
+- `registry-username`: The username to use to login to the registry. Leave empty to not login.
+
+- `registry-password`: The password to use to login to the registry. Leave empty to not login.
+
 #### Run's Outputs
 
 - `container-id`: The ID of the created container.

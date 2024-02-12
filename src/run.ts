@@ -6,7 +6,7 @@ import { getInput, getMultilineInput, getBooleanInput, setOutput, exportVariable
 
 async function setupMount(path: string): Promise<string[]> {
   if (path.startsWith('C:\\')) {
-    return [`--mount type=bind,src=${path},dst=${path}`]
+    return [`-v ${path}:${path}`]
   }
   if (process.env.RUNNER_TEMP === undefined) {
     throw new Error('RUNNER_TEMP is not defined')
@@ -20,7 +20,7 @@ async function setupMount(path: string): Promise<string[]> {
     rmSync(linkPath, { recursive: true, force: true })
     await exec('cmd', ['/c', `mklink /J ${linkPath} ${linkTarget}`])
   }
-  return [`--mount type=bind,src=${drivePath},dst=${drive}:`, `--mount type=bind,src=${path},dst=${linkTarget}`]
+  return [`-v ${drivePath}:${drive}:`, `-v ${path}:${linkTarget}`]
 }
 
 export async function run(): Promise<void> {
@@ -29,8 +29,18 @@ export async function run(): Promise<void> {
     const options: string[] = getMultilineInput('options')
     const mountWorkspaces: boolean = getBooleanInput('mount-workspaces')
     const setContainerIdEnv: string = getInput('set-container-id-env')
+    const volumes: string[] = getMultilineInput('volumes')
+    const env: string[] = getMultilineInput('env')
+    const ports: string[] = getMultilineInput('ports')
+    const registryUsername: string = getInput('registry-username')
+    const registryPassword: string = getInput('registry-password')
 
     let stdout = ''
+
+    if (registryUsername !== '' && registryPassword !== '') {
+      const server = image.split('/')[0]
+      await exec('docker', ['login', server, '--username', registryUsername, '--password-stdin'], { input: Buffer.from(registryPassword) })
+    }
 
     const execOptions: ExecOptions = {}
     execOptions.listeners = {
@@ -48,6 +58,15 @@ export async function run(): Promise<void> {
       for (const mount of new Set<string>([...(await setupMount(workspace)), ...(await setupMount(workspaceTemp))])) {
         options.push(mount)
       }
+    }
+    for (const volume of volumes) {
+      options.push(`-v ${volume}`)
+    }
+    for (const e of env) {
+      options.push(`-e ${e}`)
+    }
+    for (const port of ports) {
+      options.push(`-p ${port}`)
     }
 
     await exec(`docker run --rm -td ${options.join(' ')} ${image} cmd`, [], execOptions)

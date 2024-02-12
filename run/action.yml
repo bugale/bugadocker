@@ -17,6 +17,26 @@ inputs:
     description: 'Set the result container id as an environment variable with the given name (empty for not setting)'
     required: false
     default: 'BUGADOCKER_ID'
+  volumes:
+    description: 'A multiline string of volumes to mount into the container (one per line)'
+    required: false
+    default: ''
+  env:
+    description: 'A multiline string of environment variables to set in the container (one per line)'
+    required: false
+    default: ''
+  ports:
+    description: 'A multiline string of ports to expose from the container (one per line)'
+    required: false
+    default: ''
+  registry-username:
+    description: 'The username for the docker registry'
+    required: false
+    default: ''
+  registry-password:
+    description: 'The password for the docker registry'
+    required: false
+    default: ''
 outputs:
   container-id:
     description: 'The id of the container that was started'
