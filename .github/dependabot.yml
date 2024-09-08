@@ -7,7 +7,7 @@ updates:
       - dependabot
       - actions
     schedule:
-      interval: daily
+      interval: weekly
     groups:
       action-dependencies:
         patterns:
@@ -20,7 +20,7 @@ updates:
       - dependabot
       - npm
     schedule:
-      interval: daily
+      interval: weekly
     groups:
       npm-dependencies:
         patterns:
