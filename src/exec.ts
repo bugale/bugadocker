@@ -21,6 +21,7 @@ export async function run(): Promise<void> {
 
     if (shell === 'powershell' || shell === 'pwsh') {
       run_.unshift("$ErrorActionPreference = 'stop'")
+      run_.unshift('$PSNativeCommandUseErrorActionPreference = $true')
       run_.push('if ((Test-Path -LiteralPath variable:\\LASTEXITCODE)) { exit $LASTEXITCODE }')
     }
 

@@ -79,6 +79,7 @@ Similar to the `run` action, if the shell is `pwsh` or `powershell`, the action 
 
 ```powershell
 $ErrorActionPreference = 'stop'
+$PSNativeCommandUseErrorActionPreference = $true
 ...
 if ((Test-Path -LiteralPath variable:\\LASTEXITCODE)) { exit $LASTEXITCODE }
 ```
