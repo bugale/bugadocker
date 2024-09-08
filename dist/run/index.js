@@ -28057,7 +28057,7 @@ var __webpack_exports__ = {};
 var exports = __webpack_exports__;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.run = void 0;
+exports.run = run;
 const fs_1 = __nccwpck_require__(7147);
 const path_1 = __nccwpck_require__(1017);
 const os_1 = __nccwpck_require__(2037);
@@ -28135,7 +28135,6 @@ async function run() {
         }
     }
 }
-exports.run = run;
 void run().finally(() => { });
 
 })();
