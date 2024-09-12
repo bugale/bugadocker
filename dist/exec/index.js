@@ -28776,7 +28776,7 @@ async function run() {
         options.push(`-w "${process.cwd()}"`);
         if (passGhEnv) {
             for (const key in process.env) {
-                if (key.startsWith('GITHUB_') || key.startsWith('RUNNER_')) {
+                if (key.startsWith('GITHUB_') || key.startsWith('RUNNER_') || key === 'CI') {
                     options.push(`-e ${key}`);
                 }
             }
