@@ -68,7 +68,7 @@ It also sets by default an environment variable (`BUGADOCKER_ID`) with the conta
 
 This action runs commands in a container that was started by the `run` action.
 It uses the `BUGADOCKER_ID` environment variable, by default, to know which container to run the commands in.
-The action passes by default all of the `GITHUB_*` and `RUNNER_*` environment variables to the container.
+The action passes by default all of the `GITHUB_*`, `RUNNER_*`, and `CI` environment variables to the container.
 It does NOT pass any other variables set using an `env:` block in the workflow. Those can be passed manually using raw `args` to the `docker exec` command.
 
 This action attempts to be as close as possible to the `run` action, but it is not perfect.
