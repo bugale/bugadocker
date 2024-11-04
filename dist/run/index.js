@@ -28065,7 +28065,7 @@ const exec_1 = __nccwpck_require__(1514);
 const core_1 = __nccwpck_require__(2186);
 async function setupMount(path) {
     if (path.startsWith('C:\\')) {
-        return [`-v ${path}:${path}`];
+        return [`${path}:${path}`];
     }
     if (process.env.RUNNER_TEMP === undefined) {
         throw new Error('RUNNER_TEMP is not defined');
@@ -28079,12 +28079,12 @@ async function setupMount(path) {
         (0, fs_1.rmSync)(linkPath, { recursive: true, force: true });
         await (0, exec_1.exec)('cmd', ['/c', `mklink /J ${linkPath} ${linkTarget}`]);
     }
-    return [`-v ${drivePath}:${drive}:`, `-v ${path}:${linkTarget}`];
+    return [`${drivePath}:${drive}:`, `${path}:${linkTarget}`];
 }
 async function run() {
     try {
         const image = (0, core_1.getInput)('image', { required: true });
-        const options = (0, core_1.getMultilineInput)('options');
+        const strOptions = (0, core_1.getMultilineInput)('options');
         const mountWorkspaces = (0, core_1.getBooleanInput)('mount-workspaces');
         const setContainerIdEnv = (0, core_1.getInput)('set-container-id-env');
         const volumes = (0, core_1.getMultilineInput)('volumes');
@@ -28092,6 +28092,7 @@ async function run() {
         const ports = (0, core_1.getMultilineInput)('ports');
         const registryUsername = (0, core_1.getInput)('registry-username');
         const registryPassword = (0, core_1.getInput)('registry-password');
+        const options = [];
         let stdout = '';
         if (registryUsername !== '' && registryPassword !== '') {
             const server = image.split('/')[0];
@@ -28110,19 +28111,19 @@ async function run() {
                 throw new Error('GITHUB_WORKSPACE and/or RUNNER_TEMP are not defined');
             }
             for (const mount of new Set([...(await setupMount(workspace)), ...(await setupMount(workspaceTemp))])) {
-                options.push(mount);
+                options.push('-v', mount);
             }
         }
         for (const volume of volumes) {
-            options.push(`-v ${volume}`);
+            options.push('-v', volume);
         }
         for (const e of env) {
-            options.push(`-e ${e}`);
+            options.push('-e', e);
         }
         for (const port of ports) {
-            options.push(`-p ${port}`);
+            options.push('-p', port);
         }
-        await (0, exec_1.exec)(`docker run --rm -td ${options.join(' ')} ${image} cmd`, [], execOptions);
+        await (0, exec_1.exec)(`docker run --rm -td ${strOptions.join(' ')}`, [...options, image, 'cmd'], execOptions);
         (0, core_1.saveState)('container-id', stdout.trim());
         if (setContainerIdEnv !== '') {
             (0, core_1.exportVariable)(setContainerIdEnv, stdout.trim());

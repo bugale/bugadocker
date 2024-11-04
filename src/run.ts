@@ -6,7 +6,7 @@ import { getInput, getMultilineInput, getBooleanInput, setOutput, exportVariable
 
 async function setupMount(path: string): Promise<string[]> {
   if (path.startsWith('C:\\')) {
-    return [`-v ${path}:${path}`]
+    return [`${path}:${path}`]
   }
   if (process.env.RUNNER_TEMP === undefined) {
     throw new Error('RUNNER_TEMP is not defined')
@@ -20,13 +20,13 @@ async function setupMount(path: string): Promise<string[]> {
     rmSync(linkPath, { recursive: true, force: true })
     await exec('cmd', ['/c', `mklink /J ${linkPath} ${linkTarget}`])
   }
-  return [`-v ${drivePath}:${drive}:`, `-v ${path}:${linkTarget}`]
+  return [`${drivePath}:${drive}:`, `${path}:${linkTarget}`]
 }
 
 export async function run(): Promise<void> {
   try {
     const image: string = getInput('image', { required: true })
-    const options: string[] = getMultilineInput('options')
+    const strOptions: string[] = getMultilineInput('options')
     const mountWorkspaces: boolean = getBooleanInput('mount-workspaces')
     const setContainerIdEnv: string = getInput('set-container-id-env')
     const volumes: string[] = getMultilineInput('volumes')
@@ -34,6 +34,7 @@ export async function run(): Promise<void> {
     const ports: string[] = getMultilineInput('ports')
     const registryUsername: string = getInput('registry-username')
     const registryPassword: string = getInput('registry-password')
+    const options: string[] = []
 
     let stdout = ''
 
@@ -56,20 +57,20 @@ export async function run(): Promise<void> {
         throw new Error('GITHUB_WORKSPACE and/or RUNNER_TEMP are not defined')
       }
       for (const mount of new Set<string>([...(await setupMount(workspace)), ...(await setupMount(workspaceTemp))])) {
-        options.push(mount)
+        options.push('-v', mount)
       }
     }
     for (const volume of volumes) {
-      options.push(`-v ${volume}`)
+      options.push('-v', volume)
     }
     for (const e of env) {
-      options.push(`-e ${e}`)
+      options.push('-e', e)
     }
     for (const port of ports) {
-      options.push(`-p ${port}`)
+      options.push('-p', port)
     }
 
-    await exec(`docker run --rm -td ${options.join(' ')} ${image} cmd`, [], execOptions)
+    await exec(`docker run --rm -td ${strOptions.join(' ')}`, [...options, image, 'cmd'], execOptions)
     saveState('container-id', stdout.trim())
     if (setContainerIdEnv !== '') {
       exportVariable(setContainerIdEnv, stdout.trim())
