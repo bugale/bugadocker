@@ -41,6 +41,6 @@ outputs:
   container-id:
     description: 'The id of the container that was started'
 runs:
-  using: 'node16'
+  using: 'node20'
   main: '../dist/run/index.js'
   post: '../dist/run-post/index.js'
