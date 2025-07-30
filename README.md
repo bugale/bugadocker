@@ -28,7 +28,8 @@ steps:
 
 This action starts a container and sets up the environment for the `exec` action to run commands in it.
 The action also has a post action that removes the created container at the end of the job.
-This action supports mounting the workspace and temporary directory (`GITHUB_WORKSPACE` and `RUNNER_TEMP` environment variables) into the container.
+This action supports mounting the workspace, temporary directory, and tool cache directory (`GITHUB_WORKSPACE`, `RUNNER_TEMP`, and `RUNNER_TOOL_CACHE`
+environment variables) into the container.
 It does so by default.
 It also sets by default an environment variable (`BUGADOCKER_ID`) with the container's ID, so that the `exec` action can use it to run commands in the container.
 
@@ -38,7 +39,7 @@ It also sets by default an environment variable (`BUGADOCKER_ID`) with the conta
 
 - `args`: Free form arguments that are passed to the `docker run` command.
 
-- `mount-workspaces`: True by default - mounts the `GITHUB_WORKSPACE` and `RUNNER_TEMP` directories into the container.
+- `mount-workspaces`: True by default - mounts the `GITHUB_WORKSPACE`, `RUNNER_TEMP`, and `RUNNER_TOOL_CACHE` directories into the container.
   This is done even if those directories are on a drive that doesn't exist in the container (e.g. `D:`), by clever usage of junctions.
 
 - `set-container-id-env`: `BUGADOCKER_ID` by default - the name of an environment variable that will be set with the container's ID.
