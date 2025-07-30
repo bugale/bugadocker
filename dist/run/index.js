@@ -27611,10 +27611,15 @@ async function run() {
         if (mountWorkspaces) {
             const workspace = process.env.GITHUB_WORKSPACE;
             const workspaceTemp = process.env.RUNNER_TEMP;
-            if (workspace === undefined || workspaceTemp === undefined) {
-                throw new Error('GITHUB_WORKSPACE and/or RUNNER_TEMP are not defined');
+            const workspaceToolCache = process.env.RUNNER_TOOL_CACHE;
+            if (workspace === undefined || workspaceTemp === undefined || workspaceToolCache === undefined) {
+                throw new Error('GITHUB_WORKSPACE and/or RUNNER_TEMP and/or RUNNER_TOOL_CACHE are not defined');
             }
-            for (const mount of new Set([...(await setupMount(workspace)), ...(await setupMount(workspaceTemp))])) {
+            for (const mount of new Set([
+                ...(await setupMount(workspace)),
+                ...(await setupMount(workspaceTemp)),
+                ...(await setupMount(workspaceToolCache))
+            ])) {
                 options.push('-v', mount);
             }
         }
