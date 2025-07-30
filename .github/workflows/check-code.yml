@@ -72,12 +72,15 @@ jobs:
           run: |-
             echo test > ${{ github.workspace }}\test
             echo test > ${{ runner.temp }}\test
+            echo test > ${{ runner.tool_cache }}\test
             type %GITHUB_WORKSPACE%\test
             type %RUNNER_TEMP%\test
+            type %RUNNER_TOOL_CACHE%\test
       - name: Validate Files Exist
         run: |-
           Get-Content -Path ${{ github.workspace }}\test
           Get-Content -Path ${{ runner.temp }}\test
+          Get-Content -Path ${{ runner.tool_cache }}\test
   gha-fail:
     runs-on: windows-latest
     name: Test Failure
